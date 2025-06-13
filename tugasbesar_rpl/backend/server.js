@@ -3,8 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const connectDB = require('./Config/ConnectDb'); // koneksi DB
 
-const Mahasiswa = require('./models/Mahasiswa');
-const Dosen = require('./models/Dosen');
+const Username = require('./Models/Username');
+const Password = require('./Models/Password');
 
 const app = express();
 
@@ -16,26 +16,25 @@ app.use(bodyParser.json());
 connectDB()
 
 // Routes contoh
-app.get('/mahasiswa', async (req, res) => {
-  const data = await Mahasiswa.find();
+app.get('/Username', async (req, res) => {
+  const data = await Username.find();
   res.json(data);
 });
 
-app.post('/mahasiswa', async (req, res) => {
-  const mahasiswa = new Mahasiswa(req.body);
-  await mahasiswa.save();
-  res.json(mahasiswa);
+app.post('/Username', async (req, res) => {
+  const Username = new Username(req.body);
+  await Username.save();
+  res.json(Username);
 });
 
-
-app.delete('/mahasiswa/:id', async (req, res) => {
+app.delete('/Username/:id', async (req, res) => {
     try {
-        const mahasiswaId = req.params.id;
-        const deleted = await Mahasiswa.findByIdAndDelete(mahasiswaId);
+        const UsernameId = req.params.id;
+        const deleted = await Username.findByIdAndDelete(UsernameId);
         if (!deleted) {
-            return res.status(404).send("Mahasiswa not found");
+            return res.status(404).send("Username not found");
         }
-        res.send("Mahasiswa has been deleted");
+        res.send("Username has been deleted");
     } catch (error) {
         res.status(500).send(error.message);
     }
