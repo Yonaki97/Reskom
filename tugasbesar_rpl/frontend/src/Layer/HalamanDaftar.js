@@ -8,14 +8,15 @@ function HalamanDaftar() {
   const [showPopup, setShowPopup] = useState(false);
   const [showPopupPassword, setShowPopupPassword] = useState (false)
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    const email = e.target.elements.email.value;
     const username = e.target.elements.username.value;
     const password = e.target.elements.password.value;
-    const Role = e.target.elements.Role.value;
+    const role = e.target.elements.role.value;
     const ConfirmPassword = e.target.elements.Confirmpassword.value
 
-    if (!username || !password || !Role) {
+    if (!username || !password || !role || !email) {
       setShowPopup(true);
       return;
     }
@@ -23,7 +24,25 @@ function HalamanDaftar() {
       setShowPopupPassword(true)
       return;
     }
-    navigate('/login');
+try {
+  const response = await fetch('http://localhost:5000/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, username, password, role }),
+  });
+
+  const result = await response.json();
+
+  if (response.ok) {
+    alert('Pendaftaran berhasil!');
+    navigate('/');
+  } else {
+    alert('Pendaftaran gagal: ' + result.message);
+  }
+} catch (err) {
+  alert('Terjadi kesalahan server');
+  console.error(err);
+}
   };
 
   return (
@@ -37,7 +56,7 @@ function HalamanDaftar() {
 
         <img src="/dada.jpg" alt="Login Avatar"
              className="rounded-circle mx-auto d-block mb-3"
-             style={{ width: '100px', height: '100px', objectFit: 'cover', backgroundColor: 'white', padding: '2px' }}
+             style={{ width: '100px', height: '100px', objectFit: 'cover', padding: '2px' }}
         />
 
         <h3 className="text-center mb-4 ">Register</h3>
@@ -49,8 +68,8 @@ function HalamanDaftar() {
             <input type="password" name="password" className="form-control mb-3" placeholder="Password" />
             <input type="password" name="Confirmpassword" className="form-control mb-3" placeholder="Confirm Password" />
 
-            <select className="form-select mb-3" name= "Role" aria-label="Pilih Role">
-              <option value="" disabled selected>Pilih Role</option>
+            <select className="form-select mb-3" name= "role" aria-label="Pilih Role" defaultValue="">
+              <option value="" disabled>Pilih Role</option>
               <option value="Koki">Koki</option>
               <option value="Kasir">Kasir</option>
               <option value="Pelayan">Pelayan</option>
@@ -66,7 +85,7 @@ function HalamanDaftar() {
         </form>
 
         <div className="text-center mt-3">
-          <a href="#" className="text-light">Forgot Password?</a>
+          <a href="#" className="text-light text-decoration-none">Forgot Password?</a>
         </div>
       </div>
 

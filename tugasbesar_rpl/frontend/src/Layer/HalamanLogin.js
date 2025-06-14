@@ -6,19 +6,45 @@ import Popup from '../Components/popup'; // Import komponen popup
 function HalamanLogin() {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
-
-  const handleLogin = (e) => {
+  const [showPopupTitle, setShowPopupTitle] = useState(false);
+  const [ShowPopupMessage, setShowPopupMessage] = useState(false);
+  const handleLogin = async (e) => {
     e.preventDefault();
     const userIdentifier = e.target.elements.userIdentifier.value;
     const password = e.target.elements.password.value;
 
     if (!userIdentifier || !password) {
+      setShowPopupTitle('Login gagal')
+      setShowPopupMessage('Username dan Password wajib diisi!')
       setShowPopup(true);
       return;
     }
+try {
+    const response = await fetch('http://localhost:5000/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userIdentifier, password }),
+    });
 
-    navigate('/beranda');
-  };
+    const result = await response.json();
+
+if (response.ok) {
+  setShowPopupTitle('Login Berhasil');
+  setShowPopupMessage('Selamat datang!');
+  setShowPopup(true);
+  setTimeout(() => navigate('/beranda'), 1500); // pindah ke /beranda setelah 1.5 detik
+} else {
+  setShowPopupTitle('Login Gagal');
+  setShowPopupMessage(result.message);
+  setShowPopup(true);
+}
+  } catch (error) {
+  setShowPopupTitle('Server Error');
+  setShowPopupMessage('Terjadi kesalahan server. Silakan coba lagi.');
+  setShowPopup(true);
+  console.error(error);
+}
+};
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100"
@@ -31,7 +57,7 @@ function HalamanLogin() {
 
         <img src="/dada.jpg" alt="Login Avatar"
              className="rounded-circle mx-auto d-block mb-3"
-             style={{ width: '100px', height: '100px', objectFit: 'cover', backgroundColor: 'white', padding: '2px' }}
+             style={{ width: '100px', height: '100px', objectFit: 'cover', padding: '2px' }}
         />
 
         <h3 className="text-center mb-4 ">Login</h3>
@@ -49,16 +75,16 @@ function HalamanLogin() {
           </div>
         </form>
 
-        <div className="text-center mt-3">
-          <a href="#" className="text-light">Forgot Password?</a>
-        </div>
-      </div>
-
+        <div className="d-flex justify-content-between mt-3">
+  <a href="#" className="text-light text-decoration-none">Forgot Password?</a>
+  <a href="Register" className="text-light text-decoration-none">Register</a>
+</div>
+</div>
       {/* Tampilkan popup jika showPopup true */}
       {showPopup && (
         <Popup
-          title="Login Gagal"
-          message="Username dan Password wajib diisi!"
+          title={showPopupTitle}
+          message={ShowPopupMessage}
           onClose={() => setShowPopup(false)}
         />
       )}
