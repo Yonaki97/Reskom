@@ -4,7 +4,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import HalamanDaftar from './Layer/HalamanDaftar';
-import HalamanUtama from './Pages/HalamanUPelayan';
+import HalamanUtamaPelayan from './Pages/HalamanUPelayan';
 import HalamanLogin from './Layer/HalamanLogin';
 
 function App() {
@@ -13,7 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HalamanDaftar />} />
         <Route path="/login" element={<HalamanLogin />} />
-        <Route path="/beranda" element={<HalamanUtama />} />
+        <Route path="/beranda" element={<HalamanUtamaPelayan />} />
       </Routes>
     </Router>
   );
