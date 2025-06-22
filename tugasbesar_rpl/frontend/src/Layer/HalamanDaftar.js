@@ -6,7 +6,8 @@ import Popup from '../Components/popup'; // Import komponen popup
 function HalamanDaftar() {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
-  const [showPopupPassword, setShowPopupPassword] = useState (false)
+  const [showPopupTitle, setShowPopupTitle] = useState(false);
+  const [ShowPopupMessage, setShowPopupMessage] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -15,13 +16,18 @@ function HalamanDaftar() {
     const password = e.target.elements.password.value;
     const role = e.target.elements.role.value;
     const ConfirmPassword = e.target.elements.Confirmpassword.value
+ 
 
     if (!username || !password || !role || !email) {
+      setShowPopupTitle("Login gagal")
+      setShowPopupMessage("Mohon lengkapi semua data yang diperlukan.")
       setShowPopup(true);
       return;
     }
     if (password != ConfirmPassword){
-      setShowPopupPassword(true)
+      setShowPopupTitle("Kata Sandi tidak cocok")
+      setShowPopupMessage("Silahkan ulangi")
+      setShowPopup(true);
       return;
     }
 try {
@@ -33,12 +39,16 @@ try {
 
   const result = await response.json();
 
-  if (response.ok) {
-    alert('Pendaftaran berhasil!');
-    navigate('/');
-  } else {
-    alert('Pendaftaran gagal: ' + result.message);
-  }
+if (response.ok) {
+  setShowPopupTitle('Login Berhasil');
+  setShowPopupMessage('Selamat datang!');
+  setShowPopup(true);
+  setTimeout(() => navigate('/'), 1500); // pindah ke /beranda setelah 1.5 detik
+} else {
+  setShowPopupTitle('Login Gagal');
+  setShowPopupMessage(result.message);
+  setShowPopup(true);
+}
 } catch (err) {
   alert('Terjadi kesalahan server');
   console.error(err);
@@ -83,26 +93,14 @@ try {
             <button type="submit" className="btn btn-light w-100 rounded-pill">Register</button>
           </div>
         </form>
-
-        <div className="text-center mt-3">
-          <a href="#" className="text-light text-decoration-none">Forgot Password?</a>
-        </div>
       </div>
 
       {/* Tampilkan popup jika showPopup true */}
       {showPopup && (
         <Popup
-          title="Login Gagal"
-          message="Username dan Password wajib diisi!"
+          title={showPopupTitle}
+          message={ShowPopupMessage}
           onClose={() => setShowPopup(false)}
-        />
-      )}
-      {/* Tampilkan popup jika showPopup true */}
-      {showPopupPassword && (
-        <Popup
-          title="❌kata sandi tidak sesuai."
-          message="Harap pastikan kata sandi dan konfirmasi kata sandi sesuai"
-          onClose={() => setShowPopupPassword(false)}
         />
       )}
     </div>

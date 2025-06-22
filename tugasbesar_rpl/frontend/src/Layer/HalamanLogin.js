@@ -8,6 +8,7 @@ function HalamanLogin() {
   const [showPopup, setShowPopup] = useState(false);
   const [showPopupTitle, setShowPopupTitle] = useState(false);
   const [ShowPopupMessage, setShowPopupMessage] = useState(false);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     const userIdentifier = e.target.elements.userIdentifier.value;
@@ -32,8 +33,20 @@ if (response.ok) {
   setShowPopupTitle('Login Berhasil');
   setShowPopupMessage('Selamat datang!');
   setShowPopup(true);
-  setTimeout(() => navigate('/beranda'), 1500); // pindah ke /beranda setelah 1.5 detik
-} else {
+
+  setTimeout(() => {
+    if (result.user.role === 'Pelayan'){
+    navigate('/Meja');
+    } else if (result.user.role === 'Kasir'){
+    navigate('/Kasir');
+    } else if (result.user.role === 'Koki'){
+    navigate('/Koki');
+    } else {
+    navigate('/beranda');
+    }
+  },1500) // pindah ke /beranda setelah 1.5 detik
+} 
+else {
   setShowPopupTitle('Login Gagal');
   setShowPopupMessage(result.message);
   setShowPopup(true);
@@ -76,7 +89,7 @@ if (response.ok) {
         </form>
 
         <div className="d-flex justify-content-between mt-3">
-  <a href="#" className="text-light text-decoration-none">Forgot Password?</a>
+  <a href="ForgotPassword" className="text-light text-decoration-none">Forgot Password?</a>
   <a href="Register" className="text-light text-decoration-none">Register</a>
 </div>
 </div>
@@ -93,3 +106,6 @@ if (response.ok) {
 }
 
 export default HalamanLogin;
+
+
+
