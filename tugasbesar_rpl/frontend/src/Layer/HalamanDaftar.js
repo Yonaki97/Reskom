@@ -59,7 +59,6 @@ if (response.ok) {
     <div className="d-flex justify-content-center align-items-center vh-100"
          style={{ backgroundColor: '#0E2A1D'
           }}>
-         {/* {{ backgroundImage: `url('/steak.jpg')` }}> */}
 
       <div className="p-4 shadow rounded"
            style={{ width: '400px', backgroundColor: '#C99D4D', color: 'white' }}>

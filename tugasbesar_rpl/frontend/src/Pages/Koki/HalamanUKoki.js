@@ -1,50 +1,136 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import datamenu from "../List/ListMenu";
 
 function HalamanKoki() {
-  const [tabAktif, setTabAktif] = useState('menu');
+  const [tabAktif, setTabAktif] = useState("menu");
   const navigate = useNavigate();
-  const [menuList, setMenuList] = useState([
-    {
-      nama: 'Nasi Goreng Spesial',
-      deskripsi: 'Nasi goreng khas Reskom dengan ayam, udang, dan telur.',
-      gambar: '/gambar/Nasgor.png',
-      habis: false
-    },
-    // Tambahkan item menu lainnya sesuai kebutuhan
-  ]);
+  const [itemDiselesaikan, setItemDiselesaikan] = useState({});
+  console.log(datamenu);
+
+  const [menuList, setMenuList] = useState(() => {
+    const saved = localStorage.getItem("statusMenuHabis");
+    if (saved) {
+      return JSON.parse(saved);
+    } else {
+      localStorage.setItem("statusMenuHabis", JSON.stringify(datamenu));
+      return datamenu;
+    }
+  });
+  const [PesananMasuk, setPesananMasuk] = useState([]);
+  useEffect(() => {
+    const ambilDataPesanan = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/pesanan");
+        const data = await res.json();
+        setPesananMasuk(data);
+      } catch (err) {
+        console.error("gagal menngambil pesanan", err);
+      }
+    };
+
+    ambilDataPesanan();
+    const intervalId = setInterval(ambilDataPesanan, 2000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const toggleHabis = (index) => {
     const updatedList = [...menuList];
     updatedList[index].habis = !updatedList[index].habis;
     setMenuList(updatedList);
+
+    localStorage.setItem("statusMenuHabis", JSON.stringify(updatedList));
   };
 
   const handleLogout = () => {
-    navigate('/');
+    navigate("/");
+  };
+  const handleSelesaikanPesanan = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/pesanan/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        // Hapus dari state agar hilang dari tampilan
+        setPesananMasuk((prev) => prev.filter((pesanan) => pesanan._id !== id));
+      } else {
+        console.error("Gagal menghapus pesanan");
+      }
+    } catch (error) {
+      console.error("Terjadi kesalahan:", error);
+    }
+  };
+  const handleItemSelesai = async (pesananId, namaItem) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/pesanan/${pesananId}/item`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ namaItem }),
+        }
+      );
+
+      if (res.ok) {
+        setPesananMasuk((prev) =>
+          prev.map((p) =>
+            p._id === pesananId
+              ? {
+                  ...p,
+                  items: p.items.map((item) =>
+                    item.nama === namaItem
+                      ? { ...item, jumlah: item.jumlah - 1 }
+                      : item
+                  ),
+                }
+              : p
+          )
+        );
+
+        // ✅ Tambah ke daftar item yang sudah selesai
+        setItemDiselesaikan((prev) => {
+          const updated = {
+            ...prev,
+            [`${pesananId}_${namaItem}`]: true,
+          };
+          localStorage.setItem("itemDiselesaikan", JSON.stringify(updated));
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error("Gagal menyelesaikan item:", error);
+    }
   };
 
   return (
     <div className="d-flex flex-column min-vh-100">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center p-3" style={{ backgroundColor: '#0E2A1D', color: 'white' }}>
+      <div
+        className="d-flex justify-content-between align-items-center p-3"
+        style={{ backgroundColor: "#0E2A1D", color: "white" }}
+      >
         <h5 className="fw-bold m-0 mx-auto">RESKOM Restaurant</h5>
-        <button onClick={handleLogout} className="btn btn-sm btn-outline-light">Logout</button>
+        <button onClick={handleLogout} className="btn btn-sm btn-outline-light">
+          Logout
+        </button>
       </div>
 
       {/* Tabs */}
       <div className="d-flex justify-content-around py-2 border-bottom">
         <span
-          className={tabAktif === 'pesanan' ? 'fw-bold text-primary' : 'text-muted'}
-          style={{ cursor: 'pointer' }}
-          onClick={() => setTabAktif('pesanan')}
+          className={tabAktif === "pesanan" ? "fw-bold " : "text-muted"}
+          style={{ cursor: "pointer", color: "#C99D4D" }}
+          onClick={() => setTabAktif("pesanan")}
         >
           Pesanan Masuk
         </span>
         <span
-          className={tabAktif === 'menu' ? 'fw-bold text-primary' : 'text-muted'}
-          style={{ cursor: 'pointer' }}
-          onClick={() => setTabAktif('menu')}
+          className={tabAktif === "menu" ? "fw-bold" : "text-muted"}
+          style={{ cursor: "pointer", color: "#C99D4D" }}
+          onClick={() => setTabAktif("menu")}
         >
           Kelola Menu
         </span>
@@ -52,61 +138,132 @@ function HalamanKoki() {
 
       {/* Konten */}
       <div className="container my-3 flex-grow-1">
-        {tabAktif === 'menu' && (
+        {tabAktif === "menu" && (
           <>
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h6 className="text-primary fw-bold">Daftar Menu</h6>
+              <h6 className="fw-bold" style={{ color: "#C99D4D" }}>
+                Daftar Menu
+              </h6>
               <button className="btn btn-success btn-sm">+ Tambah Menu</button>
             </div>
 
-            {menuList.map((menu, index) => (
-              <div key={index} className="card mb-3 shadow-sm">
-                <div className="row g-0">
-                  <div className="col-4 d-flex align-items-center justify-content-center">
+            <div className="row g-3">
+              {menuList.map((menu, index) => (
+                <div key={index} className="col-lg-3 col-md-4 col-sm-6 col-6">
+                  <div
+                    className="card shadow-sm h-100"
+                    style={{ fontSize: "0.85rem" }}
+                  >
                     <img
                       src={menu.gambar}
                       alt={menu.nama}
-                      className="img-fluid rounded"
-                      style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                      className="card-img-top mx-auto d-block mt-3"
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
                     />
-                  </div>
-                  <div className="col-8">
-                    <div className="card-body">
-                      <h6 className="card-title fw-bold mb-1 text-primary">{menu.nama}</h6>
-                      <p className="card-text text-muted small mb-2">{menu.deskripsi}</p>
+                    <div className="card-body px-2 py-2 d-flex flex-column justify-content-between">
+                      <div>
+                        <h6
+                          className="fw-bold mb-1"
+                          style={{ color: "#C99D4D", fontSize: "0.9rem" }}
+                        >
+                          {menu.nama}
+                        </h6>
+                        <p
+                          className="text-muted mb-2"
+                          style={{ fontSize: "0.75rem" }}
+                        >
+                          {menu.deskripsi}
+                        </p>
+                      </div>
                       <button
-                        className={`btn w-100 ${menu.habis ? 'btn-secondary' : 'btn-danger'}`}
+                        className={`btn btn-sm ${
+                          menu.habis ? "btn-secondary" : "btn-danger"
+                        } w-100`}
                         onClick={() => toggleHabis(index)}
+                        style={{ fontSize: "0.75rem" }}
                       >
-                        {menu.habis ? 'Tersedia' : 'Tandai Habis'}
+                        {menu.habis ? "Tersedia" : "Tandai Habis"}
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </>
         )}
+        {tabAktif === "pesanan" && (
+          <div>
+            <h6 className="fw-bold text-center mb-3">
+              📥 Daftar Pesanan Masuk
+            </h6>
+            {PesananMasuk.length === 0 ? (
+              <p className="text-muted text-center">Belum ada pesanan masuk.</p>
+            ) : (
+              PesananMasuk.map((pesanan, idx) => (
+                <div
+                  key={idx}
+                  className="mb-3 p-3 border rounded shadow-sm bg-white"
+                >
+                  <h6 className="fw-bold" style={{ color: "#C99D4D" }}>
+                    Meja {pesanan.nomorMeja}
+                  </h6>
 
-        {tabAktif === 'pesanan' && (
-          <div className="text-center mt-5">
-            <h6 className="fw-bold">📥 Daftar Pesanan Masuk</h6>
-            <p className="text-muted">Belum ada pesanan masuk.</p>
-            <div className="text-center mt-4">
-              <button onClick={handleLogout} className="btn btn-outline-danger px-4 py-2 rounded-pill">
-                Logout
-              </button>
-            </div>
+                  <ul className="mb-0">
+                    {pesanan.items.map((item, i) => (
+                      <div
+                        key={i}
+                        className="d-flex justify-content-between align-items-center mb-1"
+                      >
+                        <span className="text-muted small">
+                          {item.jumlah}x {item.nama}
+                        </span>
+                        <button
+                          className={`btn btn-sm ${
+                            itemDiselesaikan[`${pesanan._id}_${item.nama}`]
+                              ? "btn-secondary"
+                              : "btn-success"
+                          }`}
+                          onClick={() =>
+                            handleItemSelesai(pesanan._id, item.nama)
+                          }
+                          disabled={
+                            itemDiselesaikan[`${pesanan._id}_${item.nama}`]
+                          }
+                        >
+                          ✓
+                        </button>
+                      </div>
+                    ))}
+                  </ul>
+                  {/* Tombol selesai */}
+                  <div className="d-flex justify-content-end mt-3">
+                    <button
+                      className="btn btn-success btn"
+                      style={{ top: "10px", right: "10px" }}
+                      onClick={() => handleSelesaikanPesanan(pesanan._id)}
+                    >
+                      Selesai
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>
-
       {/* Footer */}
-      <footer className="text-center text-white py-2" style={{ backgroundColor: '#0E2A1D', fontSize: '13px' }}>
+      <footer
+        className="text-center text-white py-2"
+        style={{ backgroundColor: "#0E2A1D", fontSize: "13px" }}
+      >
         2025 RESKOM Restaurant. All rights reserved
       </footer>
     </div>
   );
 }
-
 export default HalamanKoki;
