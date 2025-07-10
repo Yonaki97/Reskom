@@ -35,8 +35,8 @@ router.post("/", async (req, res) => {
 // GET semua pesanan aktif
 router.get("/", async (req, res) => {
   try {
-    const pesananAktif = await Pesanan.find({ dibayar: false });
-    res.json(pesananAktif);
+    const semuapesanan = await Pesanan.find();
+    res.json(semuapesanan);
   } catch (error) {
     res.status(500).json({ message: "Gagal mengambil data pesanan", error });
   }
@@ -47,13 +47,16 @@ router.put("/:id/bayar", async (req, res) => {
   try {
     const { id } = req.params;
     const now = new Date();
-
+    const { total, ppn, subtotal } = req.body
     const result = await Pesanan.findByIdAndUpdate(
       id,
       {
         dibayar: true,
         status: "dibayar",
         tanggal: now,
+        total: total,
+        ppn: ppn,
+        subtotal: subtotal
       },
       { new: true }
     );

@@ -36,22 +36,25 @@ function HalamanMeja() {
 
     return () => clearInterval(intervalId);
   }, []);
+useEffect(() => {
+  const ambilDataPesanan = () => {
+    fetch("http://localhost:5000/pesanan")
+      .then((res) => res.json())
+      .then((data) => {
+        const mejaTerisi = data
+          .filter((p) => !p.dibayar) // filter hanya yang belum dibayar
+          .map((p) => p.nomorMeja); // ambil nomor mejanya saja
 
-  useEffect(() => {
-    const ambilDataPesanan = () => {
-      fetch("http://localhost:5000/pesanan")
-        .then((res) => res.json())
-        .then((data) => {
-          const nomorMejaDenganPesanan = data.map((p) => p.nomorMeja);
-          setPesananAktif(nomorMejaDenganPesanan);
-        })
-        .catch((err) => console.error("Gagal mengambil data pesanan:", err));
-    };
+        setPesananAktif(mejaTerisi);
+      })
+      .catch((err) => console.error("Gagal mengambil data pesanan:", err));
+  };
 
-    ambilDataPesanan();
-    const intervalId = setInterval(ambilDataPesanan, 2000);
-    return () => clearInterval(intervalId);
-  }, []);
+  ambilDataPesanan();
+  const intervalId = setInterval(ambilDataPesanan, 2000);
+  return () => clearInterval(intervalId);
+}, []);
+
 
   const handleLogout = () => {
     navigate("/");
@@ -64,7 +67,7 @@ function HalamanMeja() {
         className="d-flex justify-content-between align-items-center p-3"
         style={{ backgroundColor: "#0E2A1D", color: "white" }}
       >
-        <h5 className="fw-bold m-0 mx-auto">RESKOM Restaurant</h5>
+        <h5 className="fw-bold m-0 mx-auto">RESKOM </h5>
         <button onClick={handleLogout} className="btn btn-sm btn-outline-light">
           Logout
         </button>
@@ -133,7 +136,7 @@ function HalamanMeja() {
         className="text-center py-2"
         style={{ backgroundColor: "#0E2A1D", color: "white", fontSize: "13px" }}
       >
-        2025 RESKOM Restaurant. All rights reserved
+        2025 RESKOM . All rights reserved
       </div>
       {/* nampilin popup jika showPopup true */}
       {showPopup && (

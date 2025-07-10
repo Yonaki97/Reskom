@@ -190,7 +190,7 @@ function HalamanMenu() {
         className="text-center py-2"
         style={{ backgroundColor: "#0E2A1D", color: "white", fontSize: "13px" }}
       >
-        2025 RESKOM Restaurant. All rights reserved
+        2025 RESKOM . All rights reserved
       </div>
 
       {/* Tampilkan popup jika showPopup true */}
