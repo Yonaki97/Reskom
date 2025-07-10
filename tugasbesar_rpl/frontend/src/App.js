@@ -10,8 +10,10 @@ import HalamanMeja from './Pages/Pelayan/Meja';
 import HalamanKasir from './Pages/Kasir/HalamanUKasir';
 import HalamanKoki from './Pages/Koki/HalamanUKoki';
 import HalamanMenu from './Pages/Pelayan/Menu';
+import HalamanPelanggan from './Pages/Pelanggan/Pelanggan';
 import HalamanFpassword from './Layer/HalamanForgotPassword';
 import HalamanRPassword from './Layer/HalamanResetPassword';
+
 function App() {
   return (
     <Router>
@@ -26,6 +28,7 @@ function App() {
         <Route path="/Menu" element={<HalamanMenu/>}/>
         <Route path="/ForgotPassword" element= {<HalamanFpassword/>}/>
         <Route path="/ResetPassword" element={<HalamanRPassword/>}/>
+        <Route path="/Pelanggan" element={<HalamanPelanggan/>}/>
       </Routes>
     </Router>
   );

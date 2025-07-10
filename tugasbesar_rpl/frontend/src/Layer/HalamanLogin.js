@@ -29,6 +29,17 @@ function HalamanLogin() {
 
       const result = await response.json();
 
+      if (userIdentifier.toLowerCase() === "pelanggan" && password === "4") {
+        setShowPopupTitle("Login Berhasil");
+        setShowPopupMessage("Selamat datang!");
+        setShowPopup(true);
+
+        setTimeout(() => {
+          navigate("/pelanggan");
+        }, 1500);
+        return;
+      }
+
       if (response.ok) {
         setShowPopupTitle("Login Berhasil");
         setShowPopupMessage("Selamat datang!");

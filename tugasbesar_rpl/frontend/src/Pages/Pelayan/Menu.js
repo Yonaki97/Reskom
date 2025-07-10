@@ -30,12 +30,11 @@ function HalamanMenu() {
       setDaftarMenu(merged);
     };
 
-    loadMenu(); // panggil pertama kali
+    loadMenu();
 
-    // Dengarkan event storage dari localStorage
     const handleStorageChange = (event) => {
       if (event.key === "statusMenuHabis") {
-        loadMenu(); // update daftar menu saat localStorage berubah
+        loadMenu();
       }
     };
 
@@ -176,7 +175,9 @@ function HalamanMenu() {
                   <h6 className="card-text">
                     Rp. {menu.harga.toLocaleString("id-ID")}
                   </h6>
-                  <p className="card-text text-muted small">{menu.deskripsi}</p>
+                  <p className="card-text text-muted small" style={{
+                    minHeight: "60px", overflow: "hidden"
+                  }}>{menu.deskripsi}</p>
 
                   <button
                     className="btn w-100"

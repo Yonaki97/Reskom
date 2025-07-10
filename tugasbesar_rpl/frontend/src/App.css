@@ -26,3 +26,6 @@
 body {
   font-family: "Roboto", sans-serif;
 }
+.login-card:active {
+  transform: scale(0.97); /* efek mengecil sedikit saat ditekan */
+}

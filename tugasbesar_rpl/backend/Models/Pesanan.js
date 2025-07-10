@@ -9,7 +9,7 @@ const PesananSchema = new mongoose.Schema({
   }],
   status: {
     type: String,
-    enum: ['menunggu', 'dimasak', 'selesai'],
+    enum: ['menunggu', 'dimasak', 'siap','selesai'],
     default: 'menunggu'
   },
   total: {

@@ -1,12 +1,41 @@
 // pages/HalamanMeja.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import datameja from "../List/ListMeja";
+import Popup from "../../Components/popup"; // Import komponen popup
 
 function HalamanMeja() {
   const navigate = useNavigate();
   const [pesananAktif, setPesananAktif] = useState([]);
-  console.log(datameja);
+  const sudahAlert = useRef([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [showPopupTitle, setShowPopupTitle] = useState(false);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetch("http://localhost:5000/pesanan")
+        .then((res) => res.json())
+        .then((data) => {
+          const baruSiap = data.filter(
+            (p) => p.status === "selesai" && !sudahAlert.current.includes(p._id)
+          );
+
+          if (baruSiap.length > 0) {
+            baruSiap.forEach((p) => {
+              setShowPopupTitle(`pesanan ${p.nomorMeja} telah siap`);
+              setShowPopup(true);
+            });
+
+            sudahAlert.current.push(...baruSiap.map((p) => p._id));
+          }
+        })
+        .catch((err) => {
+          console.error("❌ Gagal mengambil pesanan:", err);
+        });
+    }, 2000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const ambilDataPesanan = () => {
@@ -19,28 +48,14 @@ function HalamanMeja() {
         .catch((err) => console.error("Gagal mengambil data pesanan:", err));
     };
 
-    // Ambil data pertama kali
     ambilDataPesanan();
-
-    // Polling setiap 2 detik
     const intervalId = setInterval(ambilDataPesanan, 2000);
-
-    return () => clearInterval(intervalId); // hentikan polling jika komponen di-unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleLogout = () => {
     navigate("/");
   };
-
-  useEffect(() => {
-    fetch("http://localhost:5000/pesanan")
-      .then((res) => res.json())
-      .then((data) => {
-        const nomorMejaDenganPesanan = data.map((p) => p.nomorMeja);
-        setPesananAktif(nomorMejaDenganPesanan);
-      })
-      .catch((err) => console.error("Gagal mengambil data pesanan:", err));
-  }, []);
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -57,7 +72,6 @@ function HalamanMeja() {
 
       {/* Konten */}
       <div className="container my-4 flex-grow-1">
-        {/* Status Meja */}
         <h5 className="text-primary fw-bold mb-3">Status Meja</h5>
         <div className="row g-4 justify-content-center">
           {datameja.map((meja, index) => {
@@ -104,7 +118,6 @@ function HalamanMeja() {
           })}
         </div>
 
-        {/* Pesan Aktif */}
         <div className="mt-5 text-center">
           <h6 className="text-primary fw-bold">Pesan Aktif</h6>
           <p className="text-muted small">
@@ -122,8 +135,11 @@ function HalamanMeja() {
       >
         2025 RESKOM Restaurant. All rights reserved
       </div>
+      {/* nampilin popup jika showPopup true */}
+      {showPopup && (
+        <Popup title={showPopupTitle} onClose={() => setShowPopup(false)} />
+      )}
     </div>
   );
 }
-
 export default HalamanMeja;
