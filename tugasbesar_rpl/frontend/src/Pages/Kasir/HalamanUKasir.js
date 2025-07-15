@@ -86,8 +86,7 @@ const handleProsesPembayaran = async (pesanan) => {
 };
 
 const cetakNota = () => {
-  const originalContent = document.body.innerHTML;
-  const notaHTML = document.getElementById("notaModal").innerHTML;
+  const notaHTML = document.getElementById("notaContent").innerHTML;
 
   const printWindow = window.open("", "_blank");
   printWindow.document.write(`
@@ -106,6 +105,7 @@ const cetakNota = () => {
   printWindow.print();
   printWindow.close();
 };
+
 
   const pesananBelumLunas = dataPesanan.filter((p) => !p.dibayar);
   const pesananLunas = dataPesanan.filter((p) => p.dibayar);
@@ -251,55 +251,61 @@ const cetakNota = () => {
       </main>
 
       {showNota && notaData && (
-        <div
-          id="notaModal"
-          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75"
-        >
-          <div className="bg-white p-4 rounded" style={{ width: "350px" }}>
-            <h5 className="text-center">Pak Resto UNIKOM</h5>
-            <p className="text-center small">Jl. Cigadung No. 10, Bandung</p>
-            <hr />
-            <p className="small">ID Transaksi: {notaData.id}</p>
-            <p className="small">Tanggal: {notaData.tanggal}</p>
-            <p className="small">Kasir: {notaData.kasir}</p>
-            <hr />
-            {notaData.items.map((item, i) => (
-              <div key={i} className="d-flex justify-content-between small">
-                <span>{item.nama}</span>
-                <span>Rp {(item.jumlah * item.harga).toLocaleString()}</span>
-              </div>
-            ))}
-            <hr />
-            <div className="d-flex justify-content-between fw-bold">
-              <span>Subtotal</span>
-              <span>Rp {notaData.subtotal.toLocaleString()}</span>
-            </div>
-            <div className="d-flex justify-content-between">
-              <span>PPN (10%)</span>
-              <span>Rp {notaData.ppn.toLocaleString()}</span>
-            </div>
-            <div className="d-flex justify-content-between fs-5 fw-bold mt-2">
-              <span>TOTAL</span>
-              <span>Rp {notaData.total.toLocaleString()}</span>
-            </div>
-            <p className="text-center mt-3">
-              Terima Kasih!
-              <br />
-              <small className="text-muted">Silakan datang kembali.</small>
-            </p>
-            <div className="d-flex gap-2">
-              <button className="btn btn-primary w-100" onClick={cetakNota}>
-                Cetak
-              </button>
-              <button
-                className="btn btn-secondary w-100"
-                onClick={() => setShowNota(false)}
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
+<div
+  id="notaModal"
+  className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75"
+>
+  <div className="bg-white p-4 rounded" style={{ width: "350px" }}>
+    
+    {/* HANYA BAGIAN NOTA AKAN DICETAK */}
+    <div id="notaContent">
+      <h5 className="text-center">Pak Resto UNIKOM</h5>
+      <p className="text-center small">Jl. Cigadung No. 10, Bandung</p>
+      <hr />
+      <p className="small">ID Transaksi: {notaData.id}</p>
+      <p className="small">Tanggal: {notaData.tanggal}</p>
+      <p className="small">Kasir: {notaData.kasir}</p>
+      <hr />
+      {notaData.items.map((item, i) => (
+        <div key={i} className="d-flex justify-content-between small">
+          <span>{item.nama}</span>
+          <span>Rp {(item.jumlah * item.harga).toLocaleString()}</span>
         </div>
+      ))}
+      <hr />
+      <div className="d-flex justify-content-between fw-bold">
+        <span>Subtotal</span>
+        <span>Rp {notaData.subtotal.toLocaleString()}</span>
+      </div>
+      <div className="d-flex justify-content-between">
+        <span>PPN (10%)</span>
+        <span>Rp {notaData.ppn.toLocaleString()}</span>
+      </div>
+      <div className="d-flex justify-content-between fs-5 fw-bold mt-2">
+        <span>TOTAL</span>
+        <span>Rp {notaData.total.toLocaleString()}</span>
+      </div>
+      <p className="text-center mt-3">
+        Terima Kasih!
+        <br />
+        <small className="text-muted">Silakan datang kembali.</small>
+      </p>
+    </div>
+
+    {/* TOMBOL TIDAK IKUT TERCETAK */}
+    <div className="d-flex gap-2 mt-3">
+      <button className="btn btn-primary w-100" onClick={cetakNota}>
+        Cetak
+      </button>
+      <button
+        className="btn btn-secondary w-100"
+        onClick={() => setShowNota(false)}
+      >
+        Tutup
+      </button>
+    </div>
+  </div>
+</div>
       )}
 
       <footer

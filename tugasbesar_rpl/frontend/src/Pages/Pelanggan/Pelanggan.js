@@ -12,49 +12,45 @@ function HalamanMenu() {
   const [kategoriAktif, setKategoriAktif] = useState("Semua");
   const [daftarMenu, setDaftarMenu] = useState([]);
 
-  useEffect(() => {
-    const loadMenu = () => {
-      // memanggil list menu
-      console.log(datamenu);
+useEffect(() => {
+  const fetchMenu = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/menu");
+      const data = await res.json();
 
-      const statusHabis = JSON.parse(localStorage.getItem("statusMenuHabis"));
+      const statusHabis = JSON.parse(localStorage.getItem("statusMenuHabis")) || [];
 
-      const merged = datamenu.map((menu) => {
-        const found = statusHabis?.find((m) => m.nama === menu.nama);
-        return {
-          ...menu,
-          habis: found?.habis || false,
-        };
+      const merged = data.map((menu) => {
+        const found = statusHabis.find((m) => m.nama === menu.nama);
+        return { ...menu, habis: found?.habis || false };
       });
 
       setDaftarMenu(merged);
-    };
+    } catch (err) {
+      console.error("Gagal mengambil menu dari server:", err);
+    }
+  };
 
-    loadMenu();
+  // Pertama kali load
+  fetchMenu();
 
-    const handleStorageChange = (event) => {
-      if (event.key === "statusMenuHabis") {
-        loadMenu();
-      }
-    };
+  // Update tiap 3 detik dari server
+  const interval = setInterval(fetchMenu, 3000);
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const statusHabis =
-        JSON.parse(localStorage.getItem("statusMenuHabis")) || [];
-      setDaftarMenu((prev) =>
-        prev.map((menu) => {
-          const found = statusHabis.find((m) => m.nama === menu.nama);
-          return { ...menu, habis: found?.habis || false };
-        })
-      );
-    }, 2000); // tiap 2 detik
+  // Update kalau localStorage berubah
+  const handleStorageChange = (e) => {
+    if (e.key === "statusMenuHabis") {
+      fetchMenu(); // ambil ulang supaya data habis sinkron juga
+    }
+  };
+  window.addEventListener("storage", handleStorageChange);
 
-    return () => clearInterval(interval);
-  }, []);
+  return () => {
+    clearInterval(interval);
+    window.removeEventListener("storage", handleStorageChange);
+  };
+}, []);
+
 
   const tambahKeKeranjang = (menu) => {
     const itemBaru = { nama: menu.nama, jumlah: 1, harga: menu.harga};

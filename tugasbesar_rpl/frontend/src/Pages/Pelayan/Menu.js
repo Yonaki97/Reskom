@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Popup from "../../Components/popup"; // Import komponen popup
-import datamenu from "../List/ListMenu";
 
 function HalamanMenu() {
   const { nomorMeja } = useParams();
@@ -11,53 +10,46 @@ function HalamanMenu() {
   const [showPopupTitle, setShowPopupTitle] = useState(false);
   const [kategoriAktif, setKategoriAktif] = useState("Semua");
   const [daftarMenu, setDaftarMenu] = useState([]);
+useEffect(() => {
+  const loadMenu = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/menu");
+      const data = await res.json();
+      const statushabis = JSON.parse(localStorage.getItem("statusMenuHabis")) || [];
 
-  useEffect(() => {
-    const loadMenu = () => {
-      // memanggil list menu
-      console.log(datamenu);
-
-      const statusHabis = JSON.parse(localStorage.getItem("statusMenuHabis"));
-
-      const merged = datamenu.map((menu) => {
-        const found = statusHabis?.find((m) => m.nama === menu.nama);
-        return {
-          ...menu,
-          habis: found?.habis || false,
-        };
+      const merged = data.map((menu) => {
+        const found = statushabis.find((m) => m.nama === menu.nama);
+        return { ...menu, habis: found?.habis || false };
       });
 
       setDaftarMenu(merged);
-    };
+    } catch (err) {
+      console.error("Gagal mengambil menu dari server", err);
+    }
+  };
 
-    loadMenu();
+  // Load awal
+  loadMenu();
 
-    const handleStorageChange = (event) => {
-      if (event.key === "statusMenuHabis") {
-        loadMenu();
-      }
-    };
+  // Sync localStorage setiap 2 detik
+  const interval = setInterval(loadMenu, 2000);
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const statusHabis =
-        JSON.parse(localStorage.getItem("statusMenuHabis")) || [];
-      setDaftarMenu((prev) =>
-        prev.map((menu) => {
-          const found = statusHabis.find((m) => m.nama === menu.nama);
-          return { ...menu, habis: found?.habis || false };
-        })
-      );
-    }, 2000); // tiap 2 detik
+  // Event listener untuk perubahan di tab lain
+  const handleStorageChange = (event) => {
+    if (event.key === "statusMenuHabis") {
+      loadMenu();
+    }
+  };
+  window.addEventListener("storage", handleStorageChange);
 
-    return () => clearInterval(interval);
-  }, []);
+  return () => {
+    clearInterval(interval);
+    window.removeEventListener("storage", handleStorageChange);
+  };
+}, []);
 
   const tambahKeKeranjang = (menu) => {
-    const itemBaru = { nama: menu.nama, jumlah: 1, harga: menu.harga};
+    const itemBaru = { nama: menu.nama, jumlah: 1, harga: menu.harga };
 
     setKeranjang((prev) =>
       prev.some((item) => item.nama === menu.nama)
@@ -110,10 +102,15 @@ function HalamanMenu() {
     }
   };
 
-  const kategoriUnik = [
-    "Semua",
-    ...new Set(daftarMenu.map((menu) => menu.kategori)),
-  ];
+const kategoriUnik = [
+  "Semua",
+  ...new Set(
+    daftarMenu
+      .map((menu) => menu.kategori)
+      .filter((kategori) => kategori && kategori.trim() !== "")
+  ),
+];
+
 
   const menuTampil =
     kategoriAktif === "Semua"
@@ -175,9 +172,15 @@ function HalamanMenu() {
                   <h6 className="card-text">
                     Rp. {menu.harga.toLocaleString("id-ID")}
                   </h6>
-                  <p className="card-text text-muted small" style={{
-                    minHeight: "60px", overflow: "hidden"
-                  }}>{menu.deskripsi}</p>
+                  <p
+                    className="card-text text-muted small"
+                    style={{
+                      minHeight: "60px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {menu.deskripsi}
+                  </p>
 
                   <button
                     className="btn w-100"
