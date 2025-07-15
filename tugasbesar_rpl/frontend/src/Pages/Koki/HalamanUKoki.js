@@ -1,36 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import datamenu from "../List/ListMenu";
-import Popup from "../../Components/popup"; // Import komponen popup
+import Popup from "../../Components/popup";
 
 function HalamanKoki() {
   const navigate = useNavigate();
   const [tabAktif, setTabAktif] = useState("menu");
   const [PesananMasuk, setPesananMasuk] = useState([]);
+  const [menuList, setMenuList] = useState([]);
   const [showFormTambahMenu, setShowFormTambahMenu] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [popupTitle, setPopupTitle] = useState("");
-
 
   const [itemDiselesaikan, setItemDiselesaikan] = useState(() => {
     const saved = localStorage.getItem("itemDiselesaikan");
     return saved ? JSON.parse(saved) : {};
   });
 
-  const [menuList, setMenuList] = useState(() => {
-    const saved = localStorage.getItem("statusMenuHabis");
-    if (saved) return JSON.parse(saved);
-    localStorage.setItem("statusMenuHabis", JSON.stringify(datamenu));
-    return datamenu;
-  });
-
+  // Ambil data menu dari backend
   useEffect(() => {
-  if (showPopup) {
-    const timer = setTimeout(() => setShowPopup(false), 2000);
-    return () => clearTimeout(timer);
-  }
-}, [showPopup]);
+    const fetchMenu = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/menu");
+        const data = await res.json();
+        setMenuList(data);
+      } catch (err) {
+        console.error("Gagal mengambil menu", err);
+      }
+    };
+    fetchMenu();
+  }, []);
 
+  // Ambil data pesanan setiap 2 detik
   useEffect(() => {
     const ambilDataPesanan = async () => {
       try {
@@ -49,11 +49,29 @@ function HalamanKoki() {
     return () => clearInterval(intervalId);
   }, []);
 
-  const toggleHabis = (index) => {
+  useEffect(() => {
+    if (showPopup) {
+      const timer = setTimeout(() => setShowPopup(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showPopup]);
+
+  const toggleHabis = async (index) => {
     const updated = [...menuList];
-    updated[index].habis = !updated[index].habis;
-    setMenuList(updated);
-    localStorage.setItem("statusMenuHabis", JSON.stringify(updated));
+    const menu = updated[index];
+    menu.habis = !menu.habis;
+
+    try {
+      await fetch(`http://localhost:5000/menu/${menu._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ habis: menu.habis }),
+      });
+
+      setMenuList(updated);
+    } catch (err) {
+      console.error("Gagal mengubah status habis", err);
+    }
   };
 
   const handleLogout = () => navigate("/");
@@ -69,10 +87,10 @@ function HalamanKoki() {
       if (res.ok) {
         setPesananMasuk((prev) => prev.filter((p) => p._id !== id));
       } else {
-        console.error("Gagal menandai pesanan sebagai selesai");
+        console.error("Gagal menyelesaikan pesanan");
       }
     } catch (err) {
-      console.error("Terjadi kesalahan:", err);
+      console.error("Error:", err);
     }
   };
 
@@ -129,7 +147,7 @@ function HalamanKoki() {
 
       <div className="row g-3">
         {menuList.map((menu, index) => (
-          <div key={index} className="col-lg-3 col-md-4 col-sm-6 col-6">
+          <div key={menu._id} className="col-lg-3 col-md-4 col-sm-6 col-6">
             <div className="card shadow-sm h-100">
               <img
                 src={menu.gambar}
@@ -147,10 +165,7 @@ function HalamanKoki() {
                   <h6 className="fw-bold mb-1" style={{ color: "#C99D4D" }}>
                     {menu.nama}
                   </h6>
-                  <p
-                    className="text-muted mb-2"
-                    style={{ fontSize: "0.75rem" }}
-                  >
+                  <p className="text-muted mb-2" style={{ fontSize: "0.75rem" }}>
                     {menu.deskripsi}
                   </p>
                 </div>
@@ -179,10 +194,7 @@ function HalamanKoki() {
         PesananMasuk.map((pesanan, idx) => {
           const semuaHabis = pesanan.items.every((item) => item.jumlah <= 0);
           return (
-            <div
-              key={idx}
-              className="mb-3 p-3 border rounded shadow-sm bg-white"
-            >
+            <div key={idx} className="mb-3 p-3 border rounded shadow-sm bg-white">
               <h6 className="fw-bold" style={{ color: "#C99D4D" }}>
                 Meja {pesanan.nomorMeja}
               </h6>
@@ -236,7 +248,7 @@ function HalamanKoki() {
         className="d-flex justify-content-between align-items-center p-3"
         style={{ backgroundColor: "#0E2A1D", color: "white" }}
       >
-        <h5 className="fw-bold m-0 mx-auto">RESKOM </h5>
+        <h5 className="fw-bold m-0 mx-auto">RESKOM</h5>
         <button onClick={handleLogout} className="btn btn-sm btn-outline-light">
           Logout
         </button>
@@ -269,12 +281,9 @@ function HalamanKoki() {
       >
         2025 RESKOM . All rights reserved
       </footer>
+
       {showFormTambahMenu && (
-        <div
-          className="modal d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
+        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog">
             <div className="modal-content">
               <form
@@ -285,28 +294,19 @@ function HalamanKoki() {
                   formData.append("harga", e.target.harga.value);
                   formData.append("deskripsi", e.target.deskripsi.value);
                   formData.append("kategori", e.target.kategori.value);
-                  formData.append("gambar", e.target.gambar.files[0]); // File dari input file
+                  formData.append("gambar", e.target.gambar.files[0]);
 
                   try {
-                    const res = await fetch(
-                      "http://localhost:5000/menu",
-                      {
-                        method: "POST",
-                        body: formData,
-                      }
-                    );
+                    const res = await fetch("http://localhost:5000/menu", {
+                      method: "POST",
+                      body: formData,
+                    });
 
                     if (res.ok) {
-                      const dataBaru = await res.json(); // { nama, gambar, ... }
-                      const savedMenu = [...menuList, dataBaru];
-                      setMenuList(savedMenu);
-                      localStorage.setItem(
-                        "statusMenuHabis",
-                        JSON.stringify(savedMenu)
-                      );
-                        // 👇 Tambahkan ini
-  setPopupTitle("Tambahan menu berhasil!");
-  setShowPopup(true);
+                      const dataBaru = await res.json();
+                      setMenuList((prev) => [...prev, dataBaru]);
+                      setPopupTitle("Menu berhasil ditambahkan!");
+                      setShowPopup(true);
                       setShowFormTambahMenu(false);
                     } else {
                       alert("Gagal menambahkan menu.");
@@ -327,74 +327,41 @@ function HalamanKoki() {
                 <div className="modal-body">
                   <div className="mb-3">
                     <label className="form-label">Nama Menu</label>
-                    <input
-                      type="text"
-                      name="nama"
-                      className="form-control"
-                      required
-                    />
+                    <input type="text" name="nama" className="form-control" required />
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Harga</label>
-                    <input
-                      type="number"
-                      name="harga"
-                      className="form-control"
-                      required
-                    />
+                    <input type="number" name="harga" className="form-control" required />
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Deskripsi</label>
-                    <textarea
-                      name="deskripsi"
-                      className="form-control"
-                      rows="2"
-                    />
-                    <div className="mb-3">
-  <label className="form-label">Kategori</label>
-  <select name="kategori" className="form-control" required>
-    <option value="">Pilih Kategori</option>
-    <option value="makanan">Makanan</option>
-    <option value="minuman">Minuman</option>
-  </select>
-</div>
-
+                    <textarea name="deskripsi" className="form-control" rows="2" />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">URL Gambar</label>
-                    <input
-                      type="file"
-                      name="gambar"
-                      className="form-control"
-                      accept="image/*"
-                      required
-                    />
+                    <label className="form-label">Kategori</label>
+                    <select name="kategori" className="form-control" required>
+                      <option value="">Pilih Kategori</option>
+                      <option value="makanan">Makanan</option>
+                      <option value="minuman">Minuman</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Upload Gambar</label>
+                    <input type="file" name="gambar" className="form-control" accept="image/*" required />
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="submit" className="btn btn-success">
-                    Simpan
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowFormTambahMenu(false)}
-                  >
-                    Batal
-                  </button>
+                  <button type="submit" className="btn btn-success">Simpan</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowFormTambahMenu(false)}>Batal</button>
                 </div>
               </form>
             </div>
           </div>
         </div>
-        
       )}
-      {/* Tampilkan popup jika showPopup true */}
-      {showPopup && (
-        <Popup title={popupTitle} onClose={() => setShowPopup(false)} />
-      )}
+
+      {showPopup && <Popup title={popupTitle} onClose={() => setShowPopup(false)} />}
     </div>
-    
   );
 }
 
