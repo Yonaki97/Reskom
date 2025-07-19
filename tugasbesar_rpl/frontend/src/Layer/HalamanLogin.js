@@ -8,6 +8,7 @@ function HalamanLogin() {
   const [showPopup, setShowPopup] = useState(false);
   const [showPopupTitle, setShowPopupTitle] = useState(false);
   const [ShowPopupMessage, setShowPopupMessage] = useState(false);
+  const [popupType, setPopupType] = useState("success");
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,6 +18,7 @@ function HalamanLogin() {
     if (!userIdentifier || !password) {
       setShowPopupTitle("Login gagal");
       setShowPopupMessage("Username dan Password wajib diisi!");
+      setPopupType("error");
       setShowPopup(true);
       return;
     }
@@ -43,6 +45,7 @@ function HalamanLogin() {
       if (response.ok) {
         setShowPopupTitle("Login Berhasil");
         setShowPopupMessage("Selamat datang!");
+        setPopupType("succes")
         setShowPopup(true);
 
         setTimeout(() => {
@@ -59,6 +62,7 @@ function HalamanLogin() {
       } else {
         setShowPopupTitle("Login Gagal");
         setShowPopupMessage(result.message);
+        setPopupType("error")
         setShowPopup(true);
       }
     } catch (error) {
@@ -139,6 +143,7 @@ function HalamanLogin() {
         <Popup
           title={showPopupTitle}
           message={ShowPopupMessage}
+          type={popupType}
           onClose={() => setShowPopup(false)}
         />
       )}

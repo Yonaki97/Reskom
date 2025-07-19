@@ -268,7 +268,7 @@ const cetakNota = () => {
       <hr />
       {notaData.items.map((item, i) => (
         <div key={i} className="d-flex justify-content-between small">
-          <span>{item.nama}</span>
+          <span>{item.nama} x {item.jumlah}</span>
           <span>Rp {(item.jumlah * item.harga).toLocaleString()}</span>
         </div>
       ))}

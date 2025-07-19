@@ -44,8 +44,7 @@ const dataMenu = [
   },
   {
     nama: "Air Mineral",
-    deskripsi:
-      "Air putih kemasan, segar dan menyehatkan, cocok untuk semua jenis hidangan",
+    deskripsi:"Air putih kemasan, segar dan menyehatkan, cocok untuk semua jenis hidangan",
     gambar: "/gambar/AirMineral.png",
     kategori: "Minuman",
     harga: 4000,

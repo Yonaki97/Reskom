@@ -1,4 +1,4 @@
-.popup-wrap {
+.popup2-wrap {
   position: fixed;
   top: 0;
   left: 0;
@@ -10,7 +10,7 @@
   justify-content: center;
   z-index: 9999;
 }
-.popup-box {
+.popup2-box {
   background: white;
   padding: 30px 40px;
   border-radius: 10px;
@@ -20,24 +20,15 @@
   position: relative;
   animation: fadeInPopup 0.4s ease-out;
 }
-.popup-title-success {
-  color: #198754; /* hijau (default success) */
-  font-weight: bold;
-}
-
-.popup-title-error {
-  color: #dc3545; /* merah (error) */
-  font-weight: bold;
-}
-
-.popup-box h2 {
+.popup2-box h2 {
   margin: 0 0 10px;
-  font-size: 1.5rem;  
+  font-size: 1.5rem;
+  color:#ff0000;
   font-weight: bold;
 }
-.popup-box h3 {
+.popup2-box h3 {
   margin: 0;
-  color: #444;
+  color: #ff0000;
   font-size: 1rem;
 }
 .close-btn {
